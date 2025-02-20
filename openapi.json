@@ -1,0 +1,174 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Resume Processing API",
+      "description": "API for user authentication, resume search, and data extraction using LLM.",
+      "version": "1.0.0"
+    },
+    "servers": [
+      {
+        "url": "http://localhost:5000",
+        "description": "Local Development Server"
+      }
+    ],
+    "paths": {
+      "/login": {
+        "post": {
+          "summary": "User Login",
+          "operationId": "loginUser",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "username": { "type": "string" },
+                    "password": { "type": "string" }
+                  },
+                  "required": ["username", "password"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Login successful",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "accessToken": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            },
+            "401": { "description": "Invalid credentials" }
+          }
+        }
+      },
+      "/refresh": {
+        "post": {
+          "summary": "Refresh Access Token",
+          "operationId": "refreshToken",
+          "responses": {
+            "200": {
+              "description": "New access token generated",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "accessToken": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            },
+            "401": { "description": "Unauthorized" },
+            "403": { "description": "Invalid refresh token" }
+          }
+        }
+      },
+      "/logout": {
+        "post": {
+          "summary": "User Logout",
+          "operationId": "logoutUser",
+          "responses": {
+            "200": { "description": "Logout successful" }
+          }
+        }
+      },
+      "/resume-search": {
+        "get": {
+          "summary": "Search for resumes",
+          "operationId": "resumeSearch",
+          "security": [{ "BearerAuth": [] }],
+          "parameters": [
+            {
+              "name": "name",
+              "in": "query",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of matching resumes",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            },
+            "400": { "description": "Missing name parameter" },
+            "500": { "description": "Server error" }
+          }
+        }
+      },
+      "/extract-data": {
+        "post": {
+          "summary": "Extract data from resume",
+          "operationId": "extractData",
+          "security": [{ "BearerAuth": [] }],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": { "type": "string" }
+                  },
+                  "required": ["url"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Extracted data from resume",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "datas": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            },
+            "500": { "description": "Server error" }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "User": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "email": { "type": "string", "format": "email" }
+          }
+        }
+      },
+      "securitySchemes": {
+        "BearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      }
+    }
+  }
+  
